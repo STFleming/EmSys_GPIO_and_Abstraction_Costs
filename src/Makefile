@@ -17,3 +17,7 @@ pintoggle_fast_flipped: pinToggle_fast_flipped/pinToggle_fast_flipped.ino
 pintoggle_dual: pinToggle_dual/pinToggle_dual.ino
 		$(EMSYS_COMP) pinToggle_dual
 		$(EMSYS_UPLOAD) -p $(PORT) pinToggle_dual
+
+pintoggle_quad: pinToggle_quad/pinToggle_quad.ino
+		$(EMSYS_COMP) pinToggle_quad
+		$(EMSYS_UPLOAD) -p $(PORT) pinToggle_quad

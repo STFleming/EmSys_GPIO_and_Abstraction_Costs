@@ -149,7 +149,7 @@ In the case above the signal is high for 208.33ns and is low for 125ns, giving u
  
 The time the signal is low is the ``digitalWrite()`` function call overheads which is 125ns.
 
-## Experiment 2: Two concurrent square waves
+## Experiment 2: Multiple concurrent square waves
 
 The ESP32 has many pins, what if we want to try and toggle multiple pins as fast as we can.
 Let's try and generate two square waves.
@@ -172,3 +172,67 @@ void loop() {
 Which gives us the following waveform:
 
 ![](imgs/digi_write_dual.png)
+
+We can see now that we now have two waves but the maximum frequency is significantly reduced, giving us an maximum freuquency of 1.85 MHz. This is becasue each signal is essentially held HIGH now for two function call overheads.
+
+![](imgs/two_digi_writes_high.png)
+
+We measured earlier that each function call overhead is 125ns, and we can see here that the pulse is high for ~250ns = 125ns + 125ns.
+
+Using our measurements for the function call and loop overheads we can estimate what the maximum frequency for some code generating 4 square waves will be.
+
+```C
+void setup() {
+    pinMode(23, OUTPUT);
+    pinMode(19, OUTPUT);
+    pinMode(18, OUTPUT);
+    pinMode(5, OUTPUT); 
+}
+
+
+void loop() {
+    digitalWrite(23, HIGH);
+    digitalWrite(19, HIGH);
+    digitalWrite(18, HIGH);
+    digitalWrite(5, HIGH); 
+
+    digitalWrite(23, LOW);
+    digitalWrite(19, LOW);
+    digitalWrite(18, LOW);
+    digitalWrite(5, LOW); 
+}
+```
+
+The total time taken for the loop will be 8 ``digitalWrite()`` calls, and 1 loop overhead. Which is 8\*125ns + 83.33ns = 1083ns = 1.08us
+
+![](imgs/digi_write_quad.png)
+
+The actual value is 958.33ns which is a little bit lower than our estimate, but it's in the right ball park. 
+
+From these experiments we can see that to generate square waves from our TinyPico with the Arduino functions the highest frequency we can generate is 3 MHz. We have also seen that as we increase the number of waves that we are generating means a linear reduction in the maximum frequency that we can generate.
+
+What is stopping us from generating faster square waves?
+
+## The Cost of Abstraction
+
+The Arduino library aims to structure itself in such a way that code can be portable across devices.
+For example, the ``digitalWrite()`` function is called the same way, whether you are compiling to an ESP32, an AVR chip, or something else.
+This abstraction is powerful, it allows for a programmer to learn one set of function calls, and be able to target many devices. 
+Without this abstraction, learning, or writing code for many differrent devices can be tedious, challenging, and error prone, as the underlying hardware of different devices can have many different quirks.
+Take a simple operation like setting a pin high; for some devices, you may just have to write to a single memory mapped address. However, for others you might have to manipulate complicated switching networks to route your signals to the pins.
+The Arduino abstraction hides all these details and provides a simple ``digitalWrite()`` frontend for whatever hardware you are targetting. Great.
+However, this increase in portability and ease of use comes at a price in terms of performance.
+
+![](imgs/arduino_abstraction_layer.svg)
+
+To quantify the cost of this abstraction for the ``digitalWrite()`` function call we need to look into how GPIO pins are toggled on the ESP32 device.
+
+Looking at the Technical Reference Manual (TRM) for the ESP32 we can find a set of registers that are used to interact with the GPIO of the device.
+
+![](imgs/GPIO_sample_of_registers.png)
+
+We are going to write directly to these registers in order to directly manipulate the GPIO ports, bypassing the Arduino abstractions. 
+
+To do this we will need to examine the hardware mapped addresses of these registers that are used to manipulate the GPIO pins and read and write to them with pointers. If you are not yet familiar with C pointers and how they can be used to interact with memory-mapped hardware, please refresh the notes from last weeks lecture [[here](https://github.com/STFleming/EmSys_LabIntro_MemoryMappedHardware)].
+
+The registers that interest us are ``GPIO_ENABLE_REG``, ``GPIO_OUT_W1TS_REG``, and ``GPIO_OUT_``.
