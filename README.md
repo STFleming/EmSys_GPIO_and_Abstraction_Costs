@@ -149,4 +149,26 @@ In the case above the signal is high for 208.33ns and is low for 125ns, giving u
  
 The time the signal is low is the ``digitalWrite()`` function call overheads which is 125ns.
 
+## Experiment 2: Two concurrent square waves
 
+The ESP32 has many pins, what if we want to try and toggle multiple pins as fast as we can.
+Let's try and generate two square waves.
+
+```C
+void setup() {
+    pinMode(23, OUTPUT);
+    pinMode(19, OUTPUT);
+}
+
+
+void loop() {
+    digitalWrite(23, HIGH); 
+    digitalWrite(19, HIGH);
+    digitalWrite(23, LOW);
+    digitalWrite(19, LOW);
+}
+```
+
+Which gives us the following waveform:
+
+![](imgs/digi_write_dual.png)
