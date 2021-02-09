@@ -6,6 +6,10 @@ rawreg_single: rawReg_single/rawReg_single.ino
 		$(EMSYS_COMP) rawReg_single
 		$(EMSYS_UPLOAD) -p $(PORT) rawReg_single 
 
+rawreg_quad: rawReg_quad/rawReg_quad.ino
+		$(EMSYS_COMP) rawReg_quad
+		$(EMSYS_UPLOAD) -p $(PORT) rawReg_quad 
+
 pintoggle_1Hz: pinToggle_1Hz/pinToggle_1Hz.ino
 		$(EMSYS_COMP) pinToggle_1Hz
 		$(EMSYS_UPLOAD) -p $(PORT) pinToggle_1Hz

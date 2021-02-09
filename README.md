@@ -401,3 +401,69 @@ From this we can calculate the overhead of a call ``digitalWrite()``. Measuring 
 ![](imgs/raw_reg_pulse_time.png)
 
 Previously we measured that the function call time took about 125ns, so if this raw register write takes 41.667ns, then the overall function call overhead is ~83ns, the same as our loop overheads.
+
+## Multiple square waves using raw register writes
+
+When reading the technical reference manual information on GPIO, one thing that you might notice is that it is possible to set or clear multiple bits in one write operation.
+
+Consider the following code:
+
+```C
+// GPIO enable
+unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
+unsigned int gpio_initial_values;
+unsigned int gpio_new_values;
+
+// W1TS GPIO register
+unsigned int*gpio_w1ts_reg = (unsigned int*)(0x3FF44008);
+
+// W1TC GPIO register
+unsigned int*gpio_w1tc_reg = (unsigned int*)(0x3FF4400C);
+
+void setup() {
+    gpio_initial_values = *gpio_enable_reg; 
+    gpio_new_values = gpio_initial_values | (1 << 23) | (1 << 19) | (1 << 18) | (1 << 5);
+    *gpio_enable_reg = gpio_new_values;
+}
+
+void loop() {
+    *gpio_w1ts_reg = (1 << 23) | (1 << 19) | (1 << 18) | (1 << 5);
+    *gpio_w1tc_reg = (1 << 23) | (1 << 19) | (1 << 18) | (1 << 5);
+}   
+```
+
+There are two main changes to the previous code:
+
+```C
+gpio_new_values = gpio_initial_values | (1 << 23) | (1 << 19) | (1 << 18) | (1 << 5);
+```
+This line is now setting bit 23, 19, 18, and 5 instead of just 5. Ensuring that we have 4 GPIO pins enabled.
+
+And:
+```C
+*gpio_w1ts_reg = (1 << 23) | (1 << 19) | (1 << 18) | (1 << 5);
+*gpio_w1tc_reg = (1 << 23) | (1 << 19) | (1 << 18) | (1 << 5);
+```
+
+Are now setting and clearing all those pins, not just pin 5. Compiling and uploading this to our TinyPico we get the following trace on our logic analyser:
+
+![](imgs/raw_reg_quad.png)
+
+That is quite a big difference from the case where we did multiple pins with ``digitalWrite()``. Again, this is the cost of abstraction. Arduino provides the same ``digitalWrite()`` function to all of it's devices. If one of its devices cannot change the state of multiple GPIO pins simultaneously then that restriction becomes the restriction in the abstraction for all devices.
+
+__We are trading off performance for productivity.__ 
+
+## Something strange
+
+If we zoom out on our traces we can notice something unusual.
+
+![](imgs/preempted.png)
+
+Periodically for relatively long periods of time our GPIO pins are held high or low. The reason for this is because the code we write for our TinyPico does not actually run directly on the hardware, but rather on a lightweight operating system called freeRTOS.
+
+![](imgs/freeRTOS.svg)
+
+The ESP32 is a dual-core system and with Arduino the code that your write is place in a single task in of a freeRTOS running on the device. This task is excuted solely on ``Core0`` of the dual-core system, with ``Core1`` reserved for executing tasks related to networking and the WiFi stack. However, becasue we are observing such long interruptions to our arduino tasks in our program, the freeRTOS running on the device must be periodically scheduling a tasks to run out ``Core0`` pausing the execution of our code.
+
+In later lectures we will look into this, and examine freeRTOS in detail. For now don't worry about fully understanding this, but it is good to have some idea of what is currently running on our TinyPico boards beneath the hood.
+
