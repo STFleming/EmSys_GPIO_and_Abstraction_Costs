@@ -240,7 +240,6 @@ The registers that interest us are ``GPIO_ENABLE_REG``, ``GPIO_OUT_REG``, ``GPIO
 | Register name     | Address    | R/W | Width| Info |
 |-------------------|------------|-----|-------|------|
 | GPIO_ENABLE_REG    | 0x3FF44020 | R/W | 32  | bits 0-31 of this register can be set/cleared to enable/disable GPIOs 0-31 |
-| GPIO_OUT_REG       | 0x3FF44004 | R/W | 32  | bits 0-31 of this register can read to to see the current output of the corresponding GPIO pin or written to set that pin |
 | GPIO_OUT_W1TS_REG  | 0x3FF44008 | WO  | 32  | setting bits 0-31 of this register will set the corresponding GPIOs (0-31) to go HIGH |
 | GPIO_OUT_W1TC_REG  | 0x3FF4400C | WO  | 32  | setting bits 0-31 of this register will set the corresponding GPIOs (0-31) to go LOW      |
 
@@ -324,9 +323,96 @@ The next thing we do is a bitwise OR between ``gpio_initial_values`` and our shi
 0b00110000000000110000110111000010 // gpio_initial_value
 0b00000000000000000000000000100000 // 1 << 5
 ----------------------------------
-0b00110000000000110000110111100010
+0b00110000000000110000110111100010 // gpio_initial_value | (1 << 5)
 ```
 
-This will give us all the initial bits of the GPIO, as well as out newly set 
+This will give us all the initial bits of the GPIO, as well as out newly set bit 5.
+The final thing we need to do is write our new GPIO pins value into the ``GPIO_ENABLE_REG`` by dereferencing our ``unsigned int *gpio_enable_reg``.
+
+```C
+unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
+unsigned int gpio_initial_values;
+unsigned int gpio_new_values;
+
+void setup() {
+    gpio_initial_values = *gpio_enable_reg; 
+    gpio_new_values = gpio_initial_values | (1 << 5);
+    *gpio_enable_reg = gpio_new_values;
+}
+```
+
+## Flipping bits
+
+Now that we have our pin enabled the next thing that we need to do is to change it's value as fast as we can. To do this we will be using the ``GPIO_OUT_W1TS_REG`` and the ``GPIO_OUT_W1TC_REG`` hardware registers. 
 
 One thing to pay attention to is the naming convention here. ``W1TS`` stands for _"write 1 to set" and ``W1TC`` stands for _"write 1 to clear"_. This is a good example of how hardware memory mapped addresses can be have differently to you typical memory addresses. For the ``W1TS`` if we write a __1__ into a particular bit, then that bit is set. However if we write a __0__ into a ``W1TS`` register, then the value is not cleared. In order to clear a bit the value we would need to write a __1__ into the appropriate location in the ``W1TC`` register.
+
+To set the GPIO pin 5 high we can use
+
+```C
+// GPIO enable
+unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
+unsigned int gpio_initial_values;
+unsigned int gpio_new_values;
+
+// W1TS GPIO register
+unsigned int*gpio_w1ts_reg = (unsigned int*)(0x3FF44008);
+
+void setup() {
+    gpio_initial_values = *gpio_enable_reg; 
+    gpio_new_values = gpio_initial_values | (1 << 5);
+    *gpio_enable_reg = gpio_new_values;
+}
+
+void loop() {
+    *gpio_w1ts_reg = (1<<5);
+}
+```
+
+We get a pointer to the ``W1TS`` register with ``unsigned int* gpio_w1ts_reg = (unsigned int*)*(0x3FF44008);``, then we write a __1__ into bit 5 with ``*gpio_w1ts_reg = (1<<5);``.
+
+It's a similar story for clearing the bits
+
+```C
+// GPIO enable
+unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
+unsigned int gpio_initial_values;
+unsigned int gpio_new_values;
+
+// W1TS GPIO register
+unsigned int*gpio_w1ts_reg = (unsigned int*)(0x3FF44008);
+
+// W1TC GPIO register
+unsigned int*gpio_w1tc_reg = (unsigned int*)(0x3FF4400C);
+
+void setup() {
+    gpio_initial_values = *gpio_enable_reg; 
+    gpio_new_values = gpio_initial_values | (1 << 5);
+    *gpio_enable_reg = gpio_new_values;
+}
+
+void loop() {
+    *gpio_w1ts_reg = (1<<5);
+    *gpio_w1tc_reg = (1<<5);
+}
+```
+
+We get a pointer to the ``W1TC`` register with ``unsigned int* gpio_w1tc_reg = (unsigned int*)*(0x3FF4400C);``, then we write a __1__ into bit 5 with ``*gpio_w1tc_reg = (1<<5);`` clearing the bit.
+
+
+Compiling and uploading this code to our TinyPico generates the following waveform on pulsevie:
+
+![](imgs/raw_reg_single.png);
+
+We can see that is much faster, we now double our speed from 3MHz to 6MHz. We calculated earlier that our loop overheads are 83.33ns, so if we could remove them we would get the following:
+
+![](imgs/raw_reg_single_loop_overhead.png)
+
+Which gives us a square wave with equal mark-space ratio running at almost 12MHz.
+
+
+From this we can calculate the overhead of a call ``digitalWrite()``. Measuring the time spent high gives us:
+
+![](imgs/raw_reg_pulse_time.png)
+
+Previously we measured that the function call time took about 125ns, so if this raw register write takes 41.667ns, then the overall function call overhead is ~83ns, the same as our loop overheads.
