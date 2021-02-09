@@ -16,8 +16,185 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				 <section data-transition="none"> <img src="images/EmSysLogo.svg" height="400"> </section>
-				 <section> Lab update </section>
+				 <section data-transition="none"> <img src="imgs/EmSysLogo.svg" height="400"> </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## Lab Update                    
+                                * First Lab wont have LA
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## Lab Update                    
+                                * First Lab wont have LA
+                                * No VPN required
+                        </textarea>
+                 </section>
+             <section data-background-iframe="http://ec2-18-222-206-236.us-east-2.compute.amazonaws.com:4000/" data-background-interactive></section> 
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## Lab Update                    
+                                * First Lab wont have LA
+                                * No VPN required
+                                * New Lab Setup
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## Lab Update                    
+                                * First Lab wont have LA
+                                * No VPN required
+                                * New Lab Setup
+                                * New Lab Sheet
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## Lab Update                    
+                                * First Lab wont have LA
+                                * No VPN required
+                                * New Lab Setup
+                                * New Lab Sheet
+                                * Wednesday setup help
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## Lab Update                    
+                                * First lab wont have LA
+                                * No VPN required
+                                * New lab Setup
+                                * New lab Sheet
+                                * Wednesday setup help
+                                * Lab split
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## Lab split
+                                * Groups __0-23__ [15:00 - 16:30]
+                                * Groups __24+__  [16:30 - 18:00]
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                __Lecture 3: GPIO Deep Dive and Abstraction Costs__
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                                3. _sli.do questions_
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                                3. _sli.do questions_
+                                4. Writing to GPIO directly
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                                3. _sli.do questions_
+                                4. Writing to GPIO directly
+                                5. Bit Manipulation
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                                3. _sli.do questions_
+                                4. Writing to GPIO directly
+                                5. Bit Manipulation
+                                6. _sli.do questions_
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                                3. _sli.do questions_
+                                4. Writing to GPIO directly
+                                5. Bit Manipulation
+                                6. _sli.do questions_
+                                7. Measuring Arduino overheads
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                                3. _sli.do questions_
+                                4. Writing to GPIO directly
+                                5. Bit Manipulation
+                                6. _sli.do questions_
+                                7. Measuring Arduino overheads
+                                8. Toggling many pins again
+                        </textarea>
+                 </section>
+                 <section data-transition="none" data-markdown>
+                        <textarea data-template>
+                                ## plan 
+                                1. Toggle a pin as fast as we can
+                                2. Toggle multiple pins as fast as we can
+                                3. _sli.do questions_
+                                4. Writing to GPIO directly
+                                5. Bit Manipulation
+                                6. _sli.do questions_
+                                7. Measuring Arduino overheads
+                                8. Toggling many pins again
+                                9. _sli.do questions_ 
+                        </textarea>
+                 </section>
+				 <section data-transition="none"> <img src="imgs/ESP32_Function_Block_Diagram_highlight_CPU.svg" height="600"> </section>
+                 <section data-transition="none">
+                        <pre><code>
+unsigned int *hardware_rng; // a variable that is a pointer
+
+void setup() {
+        Serial.begin(115200);
+        Serial.print("\n\n");
+
+        hardware_rng = (unsigned int*)(0x3FF75144);
+        
+}
+
+void loop() {
+    delay(1);
+    Serial.println(*hardware_rng);
+} 
+                        </code></pre>
+                 </section>
+				 <section data-transition="none"> <img src="imgs/ESP32_Function_Block_Diagram_highlight_GPIO.svg" height="600"> </section>
 			</div>
 		</div>
 
