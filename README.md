@@ -235,4 +235,27 @@ We are going to write directly to these registers in order to directly manipulat
 
 To do this we will need to examine the hardware mapped addresses of these registers that are used to manipulate the GPIO pins and read and write to them with pointers. If you are not yet familiar with C pointers and how they can be used to interact with memory-mapped hardware, please refresh the notes from last weeks lecture [[here](https://github.com/STFleming/EmSys_LabIntro_MemoryMappedHardware)].
 
-The registers that interest us are ``GPIO_ENABLE_REG``, ``GPIO_OUT_W1TS_REG``, and ``GPIO_OUT_``.
+The registers that interest us are ``GPIO_ENABLE_REG``, ``GPIO_OUT_REG``, ``GPIO_OUT_W1TS_REG``, and ``GPIO_OUT_W1TC``.
+
+| Register name     | Address    | R/W | Width| Info |
+|-------------------|------------|-----|-------|------|
+| GPIO_ENABLE_REG    | 0x3FF44020 | R/W | 32  | bits 0-31 of this register can be set/cleared to enable/disable GPIOs 0-31 |
+| GPIO_OUT_REG       | 0x3FF44004 | R/W | 32  | bits 0-31 of this register can read to to see the current output of the corresponding GPIO pin or written to set that pin |
+| GPIO_OUT_W1TS_REG  | 0x3FF44008 | WO  | 32  | setting bits 0-31 of this register will set the corresponding GPIOs (0-31) to go HIGH |
+| GPIO_OUT_W1TC_REG  | 0x3FF4400C | WO  | 32  | setting bits 0-31 of this register will set the corresponding GPIOs (0-31) to go LOW      |
+
+Let's think about how the Arduino code will use these registers, starting with our ``setup()`` function:
+
+```C
+void setup() {
+    pinMode(5, OUTPUT);
+}
+```
+
+In the function call ``pinMode(23, OUTPUT)`` we are telling Arduino to set GPIO pin 23 as an output. To do this, the implmentation of ``pinMode(pin, OUTPUT)`` for the ESP32 will need to interact with the ``GPIO_ENABLE_REG`` to enable the GPIO pin, setting the appropriate bit.
+
+In the example about we want GPIO 5 to be enabled, which means we need to set bit 5. Now of course, we could just write ``unsigned int 32`` into this register, which would be ``0b00000000000000000000000000100000`` in binary, but this would disable all the other GPIO pins. What if we had some pins that were already enabled that we don't want to disturb?
+
+### Bit Manipulation in C
+
+One thing to pay attention to is the naming convention here. ``W1TS`` stands for _"write 1 to set" and ``W1TC`` stands for _"write 1 to clear"_. This is a good example of how hardware memory mapped addresses can be have differently to you typical memory addresses. For the ``W1TS`` if we write a __1__ into a particular bit, then that bit is set. However if we write a __0__ into a ``W1TS`` register, then the value is not cleared. In order to clear a bit the value we would need to write a __1__ into the appropriate location in the ``W1TC`` register.
