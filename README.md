@@ -256,6 +256,77 @@ In the function call ``pinMode(23, OUTPUT)`` we are telling Arduino to set GPIO 
 
 In the example about we want GPIO 5 to be enabled, which means we need to set bit 5. Now of course, we could just write ``unsigned int 32`` into this register, which would be ``0b00000000000000000000000000100000`` in binary, but this would disable all the other GPIO pins. What if we had some pins that were already enabled that we don't want to disturb?
 
+Luckily C has some excellent __bitwise__ operations that we can use to individually 
+
 ### Bit Manipulation in C
+
+You'll find bitwise operations everywhere in embedded C code, they are cheap, powerful, and when dealing with memory-mapped hardware registers essential. A bitwise operation allows the developer to write code that can set or clear many individual bits in one operation. 
+
+| Operation  | Info                                                                                 |
+|------------|--------------------------------------------------------------------------------------|
+| ``a & b``  | Takes ``a`` and ``b`` and does an __AND__ on every individual bit of the two numbers |
+| ``a \| b`` | Takes ``a`` and ``b`` and does an __OR__ on every individual bit of the two numbers  |
+| ``a ^ b``  | Takes ``a`` and ``b`` and does an __XOR__ on every individual bit of the two numbers |
+| ``a << X`` | Takes ``a`` and __shifts__ all the bits along to the __left__ by ``X``             |
+| ``b >> X`` | Takes ``a`` and __shifts__ all the bits along to the __right__ by ``X``             |
+| ``~a``     | Inverts all the bits of ``a``                                                        |
+
+In our code we want to enable only GPIO 5 and we don't want to accidentally disable any other GPIO pins by writing a __0__ into their location. We can use some of the bitwise operations above to do this.
+
+First we have to create a pointer to the ``GPIO_ENABLE_REG``. Looking at the TRM we can see that the memory-mapped address is ``0x3FF44020`` so we can create a pointer for this address. 
+
+```C
+unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
+```
+
+The next thing that we want to do is read the value from this pointer, which will tell us all the pins that are currently already enabled.
+
+```C
+unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
+unsigned int gpio_initial_values;
+
+void setup() {
+    Serial.begin(115200);
+    gpio_initial_values = *gpio_enable_reg; 
+    Serial.println(gpio_initial_values, BIN);
+}
+```
+
+We can do this simply by dereferencing the hardware pointer we created.
+
+On my board when I run this code I get the following output:
+```
+110000000000110000110111000010
+```
+
+Where we can see that there are some bits enabled, however, bit 5 is not. What we want to do is set bit 5 without disturbing the other bits, which we can do with the following:
+
+```C
+unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
+unsigned int gpio_initial_values;
+unsigned int gpio_new_values;
+
+void setup() {
+    Serial.begin(115200);
+    gpio_initial_values = *gpio_enable_reg; 
+    Serial.println(gpio_initial_values, BIN);
+
+    gpio_new_values = gpio_initial_values | (1 << 5);
+    Serial.println(gpio_new_values, BIN);
+}
+```
+
+The line ``gpio_new_values = gpio_initial_values | (1 << 5);`` is the line of interest here. Let's start with the ``(1 << 5)`` part. Here we are taking a value, ``1``, which in binary is ``0b00000000000000000000000000000001`` and we are shifting it 5 places to the left to get ``0b00000000000000000000000000100000``.
+
+The next thing we do is a bitwise OR between ``gpio_initial_values`` and our shifted value ``(1 << 5)``.With the bitwise OR if a bit at either input is __1__ then the output is __1__. 
+
+```
+0b00110000000000110000110111000010 // gpio_initial_value
+0b00000000000000000000000000100000 // 1 << 5
+----------------------------------
+0b00110000000000110000110111100010
+```
+
+This will give us all the initial bits of the GPIO, as well as out newly set 
 
 One thing to pay attention to is the naming convention here. ``W1TS`` stands for _"write 1 to set" and ``W1TC`` stands for _"write 1 to clear"_. This is a good example of how hardware memory mapped addresses can be have differently to you typical memory addresses. For the ``W1TS`` if we write a __1__ into a particular bit, then that bit is set. However if we write a __0__ into a ``W1TS`` register, then the value is not cleared. In order to clear a bit the value we would need to write a __1__ into the appropriate location in the ``W1TC`` register.

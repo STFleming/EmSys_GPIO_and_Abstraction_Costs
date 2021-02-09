@@ -21,3 +21,7 @@ pintoggle_dual: pinToggle_dual/pinToggle_dual.ino
 pintoggle_quad: pinToggle_quad/pinToggle_quad.ino
 		$(EMSYS_COMP) pinToggle_quad
 		$(EMSYS_UPLOAD) -p $(PORT) pinToggle_quad
+
+gpio_enable_bm: gpio_enable_bm/gpio_enable_bm.ino
+		$(EMSYS_COMP) gpio_enable_bm
+		$(EMSYS_UPLOAD) -p $(PORT) gpio_enable_bm 
