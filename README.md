@@ -8,21 +8,6 @@ __Learning outcomes:__
 * A deeper appreciation of memory-mapped I/O, expanding on the introduction from last lecture.
 * Bit-manipulation techniques in C
 
-__Outline:__
-* Recap how to write to digital pins on the ESP32 with Arduino
-* Recap reading and writing to memory mapped I/O and hardware
-* The limits of how fast we can pulse pins in Arduino
-* What happens when we call a function?
-* Estimating the overheads of a function call.
-* The GPIO register map
-* Directly interact with the GPIO
-* New maximum frequency 
-* Generating multiple waves simultaneously
-
-__Ideas:__
-* FM transmission on a GPIO pin
-* Asking questions in sli.do
-
 ---------------------------------------------
 
 ## Generating a Square Wave 
