@@ -208,9 +208,9 @@ Looking at the Technical Reference Manual (TRM) for the ESP32, we can find a set
 
 ![](imgs/GPIO_sample_of_registers.png)
 
-We are going to write directly to these registers in order to directly manipulate the GPIO ports, bypassing the Arduino abstractions. 
+We are going to write directly to these registers to manipulate the GPIO ports, bypassing the Arduino abstractions directly.
 
-To do this we will need to examine the hardware mapped addresses of these registers that are used to manipulate the GPIO pins and read and write to them with pointers. If you are not yet familiar with C pointers and how they can be used to interact with memory-mapped hardware, please refresh the notes from last weeks lecture [[here](https://github.com/STFleming/EmSys_LabIntro_MemoryMappedHardware)].
+To do this, we will need to examine the hardware mapped addresses of these registers used to manipulate the GPIO pins and read and write to them with pointers. If you are not yet familiar with C pointers and how they enable interaction with memory-mapped hardware, please refresh the notes from last weeks lecture [[here](https://github.com/STFleming/EmSys_LabIntro_MemoryMappedHardware)].
 
 The registers that interest us are ``GPIO_ENABLE_REG``, ``GPIO_OUT_REG``, ``GPIO_OUT_W1TS_REG``, and ``GPIO_OUT_W1TC``.
 
@@ -228,7 +228,7 @@ void setup() {
 }
 ```
 
-In the function call ``pinMode(23, OUTPUT)`` we are telling Arduino to set GPIO pin 23 as an output. To do this, the implmentation of ``pinMode(pin, OUTPUT)`` for the ESP32 will need to interact with the ``GPIO_ENABLE_REG`` to enable the GPIO pin, setting the appropriate bit.
+In the function call ``pinMode(23, OUTPUT)`` we are telling the Arduino runtime to set GPIO pin 23 as an output. To do this, the implementation of ``pinMode(pin, OUTPUT)`` for the ESP32 will need to interact with the ``GPIO_ENABLE_REG`` to enable the GPIO pin, setting the appropriate bit.
 
 In the example about we want GPIO 5 to be enabled, which means we need to set bit 5. Now of course, we could just write ``unsigned int 32`` into this register, which would be ``0b00000000000000000000000000100000`` in binary, but this would disable all the other GPIO pins. What if we had some pins that were already enabled that we don't want to disturb?
 
@@ -249,7 +249,7 @@ You'll find bitwise operations everywhere in embedded C code, they are cheap, po
 
 In our code we want to enable only GPIO 5 and we don't want to accidentally disable any other GPIO pins by writing a __0__ into their location. We can use some of the bitwise operations above to do this.
 
-First we have to create a pointer to the ``GPIO_ENABLE_REG``. Looking at the TRM we can see that the memory-mapped address is ``0x3FF44020`` so we can create a pointer for this address. 
+First we have to create a pointer to the ``GPIO_ENABLE_REG``. Looking at the TRM we can see that the memory-mapped address for ``GPIO_ENABLE_REG`` is ``0x3FF44020`` so we can create a pointer for this address. 
 
 ```C
 unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
@@ -275,7 +275,7 @@ On my board when I run this code I get the following output:
 110000000000110000110111000010
 ```
 
-Where we can see that there are some bits enabled, however, bit 5 is not. What we want to do is set bit 5 without disturbing the other bits, which we can do with the following:
+We can see that there are some bits enabled, however, bit 5 is not. What we want to do is set bit 5 without disturbing the other bits, which we can do with the following:
 
 ```C
 unsigned int *gpio_enable_reg = (unsigned int*)(0x3FF44020);
