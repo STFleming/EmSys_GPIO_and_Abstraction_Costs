@@ -12,7 +12,7 @@ __Learning outcomes:__
 
 ## Generating a Square Wave 
 
-In this Lecture, we will look deeply at the General Purpose Input Output (GPIO) pins of our TinyPico device.
+In this lecture, we will look deeply at the General Purpose Input Output (GPIO) pins of our TinyPico device.
 
 ![](imgs/ESP32_Function_Block_Diagram_highlight_GPIO_smaller.svg)
 
@@ -24,7 +24,7 @@ __Experimental Setup:__
 
 ### Recap of last lecture
 
-In the last lecture, we looked at how software can interact directly with hardware by reading and writing memory addresses. In this lecture, we will do this again making use of pointers and bitwise manipulation techniques. If you are unsure about this, it may be useful to review the notes I posted on the previous lecture, you can find them [[here](https://github.com/STFleming/EmSys_LabIntro_MemoryMappedHardware)].
+In the last lecture, we looked at how software can interact directly with hardware by reading and writing memory addresses. In this lecture, we will do this again making use of pointers and bitwise manipulation techniques. If you are unsure about this, it may be useful to review the notes I posted on the previous lecture, you can find them [[here](https://github.com/STFleming/EmSys_21A_Lecture2)].
 
 ## Experiment 1: Toggle a pin as fast as possible
 
