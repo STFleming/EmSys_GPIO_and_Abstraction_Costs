@@ -2,6 +2,12 @@ PORT=/dev/ttyUSB0
 EMSYS_COMP=~/EmSys/arduino-cli compile --fqbn esp32:esp32:tinypico
 EMSYS_UPLOAD=~/EmSys/arduino-cli upload --fqbn esp32:esp32:tinypico
 
+.PHONY: live
+
+live: live/live.ino
+		$(EMSYS_COMP) live 
+		$(EMSYS_UPLOAD) -p $(PORT) live 
+
 rawreg_single: rawReg_single/rawReg_single.ino
 		$(EMSYS_COMP) rawReg_single
 		$(EMSYS_UPLOAD) -p $(PORT) rawReg_single 
